@@ -12,9 +12,7 @@ class TestTransformersModel(unittest.TestCase):
         self.choices = []
 
         with RESOURCES.joinpath('sonnets.txt').open('rb') as fh:
-            for i, line in enumerate(fh):
-                if not line == '':
-                    self.choices.append(Choice('id', line))
+            self.choices.extend(Choice('id', line) for line in fh if line != '')
 
     def test_rank(self):
         self.model.rank(self.query, self.choices)

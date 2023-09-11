@@ -54,9 +54,7 @@ def convert_to_bert_input(text, max_seq_length, tokenizer, add_cls):
     tokens = ["[CLS]"] + tokens
   tokens += ["[SEP]"]
 
-  input_ids = tokenizer.convert_tokens_to_ids(tokens)
-
-  return input_ids
+  return tokenizer.convert_tokens_to_ids(tokens)
 
 
 def convert_to_unicode(text):
@@ -67,14 +65,14 @@ def convert_to_unicode(text):
     elif isinstance(text, bytes):
       return text.decode("utf-8", "ignore")
     else:
-      raise ValueError("Unsupported string type: %s" % (type(text)))
+      raise ValueError(f"Unsupported string type: {type(text)}")
   elif six.PY2:
     if isinstance(text, str):
       return text.decode("utf-8", "ignore")
     elif isinstance(text, unicode):
       return text
     else:
-      raise ValueError("Unsupported string type: %s" % (type(text)))
+      raise ValueError(f"Unsupported string type: {type(text)}")
   else:
     raise ValueError("Not running on Python2 or Python 3?")
 
@@ -90,14 +88,14 @@ def printable_text(text):
     elif isinstance(text, bytes):
       return text.decode("utf-8", "ignore")
     else:
-      raise ValueError("Unsupported string type: %s" % (type(text)))
+      raise ValueError(f"Unsupported string type: {type(text)}")
   elif six.PY2:
     if isinstance(text, str):
       return text
     elif isinstance(text, unicode):
       return text.encode("utf-8")
     else:
-      raise ValueError("Unsupported string type: %s" % (type(text)))
+      raise ValueError(f"Unsupported string type: {type(text)}")
   else:
     raise ValueError("Not running on Python2 or Python 3?")
 
@@ -125,10 +123,7 @@ def convert_tokens_to_ids(vocab, tokens):
 def whitespace_tokenize(text):
   """Runs basic whitespace cleaning and splitting on a peice of text."""
   text = text.strip()
-  if not text:
-    return []
-  tokens = text.split()
-  return tokens
+  return [] if not text else text.split()
 
 
 class FullTokenizer(object):
@@ -173,8 +168,7 @@ class BasicTokenizer(object):
         token = self._run_strip_accents(token)
       split_tokens.extend(self._run_split_on_punc(token))
 
-    output_tokens = whitespace_tokenize(" ".join(split_tokens))
-    return output_tokens
+    return whitespace_tokenize(" ".join(split_tokens))
 
   def _run_strip_accents(self, text):
     """Strips accents from a piece of text."""
@@ -265,7 +259,7 @@ class WordpieceTokenizer(object):
         while start < end:
           substr = "".join(chars[start:end])
           if start > 0:
-            substr = "##" + substr
+            substr = f"##{substr}"
           if substr in self.vocab:
             cur_substr = substr
             break
@@ -287,24 +281,20 @@ def _is_whitespace(char):
   """Checks whether `chars` is a whitespace character."""
   # \t, \n, and \r are technically contorl characters but we treat them
   # as whitespace since they are generally considered as such.
-  if char == " " or char == "\t" or char == "\n" or char == "\r":
+  if char in [" ", "\t", "\n", "\r"]:
     return True
   cat = unicodedata.category(char)
-  if cat == "Zs":
-    return True
-  return False
+  return cat == "Zs"
 
 
 def _is_control(char):
   """Checks whether `chars` is a control character."""
   # These are technically control characters but we count them as whitespace
   # characters.
-  if char == "\t" or char == "\n" or char == "\r":
+  if char in ["\t", "\n", "\r"]:
     return False
   cat = unicodedata.category(char)
-  if cat.startswith("C"):
-    return True
-  return False
+  return bool(cat.startswith("C"))
 
 
 def _is_punctuation(char):
@@ -318,6 +308,4 @@ def _is_punctuation(char):
       (cp >= 91 and cp <= 96) or (cp >= 123 and cp <= 126)):
     return True
   cat = unicodedata.category(char)
-  if cat.startswith("P"):
-    return True
-  return False
+  return bool(cat.startswith("P"))

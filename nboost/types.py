@@ -53,7 +53,7 @@ class Request:
         self.method = str()
 
     def __repr__(self):
-        return '<Request %s %s>' % (self.url, self.method)
+        return f'<Request {self.url} {self.method}>'
 
     def prepare(self) -> bytes:
         """Prepare the request for socket transmission"""
@@ -79,7 +79,7 @@ class Response:
         self.body = bytes()
 
     def __repr__(self):
-        return '<Response %s %s>' % (self.status, self.reason)
+        return f'<Response {self.status} {self.reason}>'
 
     @property
     def reason(self):

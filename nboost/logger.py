@@ -20,9 +20,9 @@ def set_logger(context, verbose=False):
     if not logger.handlers:
         logger.setLevel(logging.DEBUG if verbose else logging.INFO)
         formatter = ColoredFormatter(
-            '%(levelname)-.1s:' + context +
-            ':[%(filename).3s:%(funcName).3s:%(lineno)3d]:%(message)s',
-            datefmt='%m-%d %H:%M:%S')
+            f'%(levelname)-.1s:{context}:[%(filename).3s:%(funcName).3s:%(lineno)3d]:%(message)s',
+            datefmt='%m-%d %H:%M:%S',
+        )
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.DEBUG if verbose else logging.INFO)
         console_handler.setFormatter(formatter)

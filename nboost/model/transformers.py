@@ -23,15 +23,16 @@ class TransformersModel(BaseModel):
         self.distilbert = 'distilbert' in self.model_ckpt
 
         if os.path.exists(os.path.join(self.model_ckpt, 'config.json')):
-            self.logger.info('Loading from checkpoint %s' % self.model_ckpt)
+            self.logger.info(f'Loading from checkpoint {self.model_ckpt}')
             self.model_config = AutoConfig.from_pretrained(self.model_ckpt)
         elif os.path.exists(os.path.join(self.data_dir, 'config.json')):
-            self.logger.info('Loading from trained model in %s' % self.data_dir)
+            self.logger.info(f'Loading from trained model in {self.data_dir}')
             self.model_ckpt = self.data_dir
             self.model_config = AutoConfig.from_pretrained(self.model_ckpt)
         else:
             self.logger.info(
-                'Initializing new model with pretrained weights %s' % self.model_ckpt)
+                f'Initializing new model with pretrained weights {self.model_ckpt}'
+            )
             self.model_config = AutoConfig.from_pretrained(self.model_ckpt)
             self.model_config.num_labels = 1  # set up for regression
 
