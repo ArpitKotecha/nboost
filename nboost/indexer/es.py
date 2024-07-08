@@ -22,11 +22,11 @@ class ESIndexer(BaseIndexer):
         self.logger.info('Setting up Elasticsearch index...')
         elastic = Elasticsearch(host=self.host, port=self.port, timeout=10000)
         try:
-            self.logger.info('Creating index %s...' % self.name)
+            self.logger.info(f'Creating index {self.name}...')
             elastic.indices.create(self.name, self.mapping)
         except RequestError:
             self.logger.info('Index already exists, skipping...')
 
-        self.logger.info('Indexing %s...' % self.file)
+        self.logger.info(f'Indexing {self.file}...')
         act = (self.format(cid, choice) for cid, choice in self.csv_generator())
         list(streaming_bulk(elastic, actions=act))

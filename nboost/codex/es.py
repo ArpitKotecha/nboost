@@ -12,10 +12,7 @@ class ESCodex(BaseCodex):
 
     def parse_query(self, request: Request) -> Tuple[Any, bytes]:
         """try to get query from query params, then body"""
-        body = load_json(request.body)
-
-        # search for query in body
-        if body:
+        if body := load_json(request.body):
             with suppress(KeyError):
                 field, query = body['query']['match'].popitem()
                 if isinstance(query, dict):
@@ -70,6 +67,6 @@ class ESCodex(BaseCodex):
 
         jkwargs = {'ensure_ascii': False}
         if 'pretty' in request.url.query:
-            jkwargs.update({'indent': 2})
+            jkwargs['indent'] = 2
 
         response.body = dump_json(body, **jkwargs)

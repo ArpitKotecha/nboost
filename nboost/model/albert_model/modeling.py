@@ -119,8 +119,7 @@ class AlbertConfig(object):
 
     def to_dict(self):
         """Serializes this instance to a Python dictionary."""
-        output = copy.deepcopy(self.__dict__)
-        return output
+        return copy.deepcopy(self.__dict__)
 
     def to_json_string(self):
         """Serializes this instance to a JSON string."""
@@ -347,7 +346,7 @@ def get_activation(activation_string):
     elif act == "tanh":
         return tf.tanh
     else:
-        raise ValueError("Unsupported activation: %s" % act)
+        raise ValueError(f"Unsupported activation: {act}")
 
 
 def get_assignment_map_from_checkpoint(tvars, init_checkpoint, num_of_group=0):
@@ -366,9 +365,7 @@ def get_assignment_map_from_checkpoint(tvars, init_checkpoint, num_of_group=0):
     init_vars_name = [name for (name, _) in init_vars]
 
     if num_of_group > 0:
-        assignment_map = []
-        for gid in range(num_of_group):
-            assignment_map.append(collections.OrderedDict())
+        assignment_map = [collections.OrderedDict() for _ in range(num_of_group)]
     else:
         assignment_map = collections.OrderedDict()
 
@@ -394,9 +391,11 @@ def get_assignment_map_from_checkpoint(tvars, init_checkpoint, num_of_group=0):
         if num_of_group > 0:
             group_matched = False
             for gid in range(1, num_of_group):
-                if (("/group_" + str(gid) + "/" in name) or
-                        ("/ffn_" + str(gid) + "/" in name) or
-                        ("/attention_" + str(gid) + "/" in name)):
+                if (
+                    f"/group_{str(gid)}/" in name
+                    or f"/ffn_{str(gid)}/" in name
+                    or f"/attention_{str(gid)}/" in name
+                ):
                     group_matched = True
                     tf.logging.info("%s belongs to %dth", name, gid)
                     assignment_map[gid][tvar_name] = name
@@ -405,7 +404,7 @@ def get_assignment_map_from_checkpoint(tvars, init_checkpoint, num_of_group=0):
         else:
             assignment_map[tvar_name] = name
         initialized_variable_names[name] = 1
-        initialized_variable_names[six.ensure_str(name) + ":0"] = 1
+        initialized_variable_names[f"{six.ensure_str(name)}:0"] = 1
 
     return (assignment_map, initialized_variable_names)
 
@@ -424,8 +423,7 @@ def dropout(input_tensor, dropout_prob):
     if dropout_prob is None or dropout_prob == 0.0:
         return input_tensor
 
-    output = tf.nn.dropout(input_tensor, rate=dropout_prob)
-    return output
+    return tf.nn.dropout(input_tensor, rate=dropout_prob)
 
 
 def layer_norm(input_tensor, name=None):
@@ -523,8 +521,9 @@ def embedding_lookup(input_ids,
 
     input_shape = get_shape_list(input_ids)
 
-    output = tf.reshape(output,
-                        input_shape[0:-1] + [input_shape[-1] * embedding_size])
+    output = tf.reshape(
+        output, input_shape[:-1] + [input_shape[-1] * embedding_size]
+    )
     return (output, embedding_table)
 
 
@@ -610,12 +609,7 @@ def embedding_postprocessor(input_tensor,
                                            [seq_length, -1])
             num_dims = len(output.shape.as_list())
 
-            # Only the last two dimensions are relevant (`seq_length` and `width`), so
-            # we broadcast among the first dimensions, which is typically just
-            # the batch size.
-            position_broadcast_shape = []
-            for _ in range(num_dims - 2):
-                position_broadcast_shape.append(1)
+            position_broadcast_shape = [1 for _ in range(num_dims - 2)]
             position_broadcast_shape.extend([seq_length, width])
             position_embeddings = tf.reshape(position_embeddings,
                                              position_broadcast_shape)
@@ -661,10 +655,7 @@ def dense_layer_3d(input_tensor,
         b = tf.reshape(b, [num_attention_heads, head_size])
         ret = tf.einsum("BFH,HND->BFND", input_tensor, w)
         ret += b
-    if activation is not None:
-        return activation(ret)
-    else:
-        return ret
+    return activation(ret) if activation is not None else ret
 
 
 def dense_layer_3d_proj(input_tensor,
@@ -700,10 +691,7 @@ def dense_layer_3d_proj(input_tensor,
             name="bias", shape=[hidden_size], initializer=tf.zeros_initializer)
         ret = tf.einsum("BFND,NDH->BFH", input_tensor, w)
         ret += b
-    if activation is not None:
-        return activation(ret)
-    else:
-        return ret
+    return activation(ret) if activation is not None else ret
 
 
 def dense_layer_2d(input_tensor,
@@ -737,10 +725,7 @@ def dense_layer_2d(input_tensor,
             name="bias", shape=[output_size], initializer=tf.zeros_initializer)
         ret = tf.einsum("BFH,HO->BFO", input_tensor, w)
         ret += b
-    if activation is not None:
-        return activation(ret)
-    else:
-        return ret
+    return activation(ret) if activation is not None else ret
 
 
 def dot_product_attention(q, k, v, bias, dropout_rate=0.0):
@@ -1051,10 +1036,7 @@ def transformer_model(input_tensor,
                                 hidden_dropout_prob)
                             prev_output = layer_output
                             all_layer_outputs.append(layer_output)
-    if do_return_all_layers:
-        return all_layer_outputs
-    else:
-        return all_layer_outputs[-1]
+    return all_layer_outputs if do_return_all_layers else all_layer_outputs[-1]
 
 
 def get_shape_list(tensor, expected_rank=None, name=None):
@@ -1080,11 +1062,7 @@ def get_shape_list(tensor, expected_rank=None, name=None):
 
     shape = tensor.shape.as_list()
 
-    non_static_indexes = []
-    for (index, dim) in enumerate(shape):
-        if dim is None:
-            non_static_indexes.append(index)
-
+    non_static_indexes = [index for index, dim in enumerate(shape) if dim is None]
     if not non_static_indexes:
         return shape
 
@@ -1098,14 +1076,14 @@ def reshape_to_matrix(input_tensor):
     """Reshapes a >= rank 2 tensor to a rank 2 tensor (i.e., a matrix)."""
     ndims = input_tensor.shape.ndims
     if ndims < 2:
-        raise ValueError("Input tensor must have at least rank 2. Shape = %s" %
-                         (input_tensor.shape))
+        raise ValueError(
+            f"Input tensor must have at least rank 2. Shape = {input_tensor.shape}"
+        )
     if ndims == 2:
         return input_tensor
 
     width = input_tensor.shape[-1]
-    output_tensor = tf.reshape(input_tensor, [-1, width])
-    return output_tensor
+    return tf.reshape(input_tensor, [-1, width])
 
 
 def reshape_from_matrix(output_tensor, orig_shape_list):
@@ -1115,7 +1093,7 @@ def reshape_from_matrix(output_tensor, orig_shape_list):
 
     output_shape = get_shape_list(output_tensor)
 
-    orig_dims = orig_shape_list[0:-1]
+    orig_dims = orig_shape_list[:-1]
     width = output_shape[-1]
 
     return tf.reshape(output_tensor, orig_dims + [width])

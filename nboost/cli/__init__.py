@@ -1,5 +1,6 @@
 """NBoost command line interface"""
 
+
 import importlib
 from pathlib import Path
 from typing import List
@@ -9,7 +10,7 @@ from nboost import CLASS_MAP, PKG_PATH
 from nboost.proxy import Proxy
 from nboost.__version__ import __doc__
 
-TAG = termcolor.colored('NBoost (v%s)' % __doc__, 'cyan', attrs=['underline'])
+TAG = termcolor.colored(f'NBoost (v{__doc__})', 'cyan', attrs=['underline'])
 DESCRIPTION = ('%s: is a scalable, search-api-boosting platform for '
                'developing and deploying SOTA models to improve the '
                'relevance of search results..' % TAG)
@@ -56,9 +57,9 @@ def import_class(module: str, name: str):
     to manage dependencies within nboost. For example, you don't necessarily
     want to import pytorch models everytime you boot up tensorflow..."""
     if name not in CLASS_MAP[module]:
-        raise ImportError('Cannot locate %s with name "%s"' % (module, name))
+        raise ImportError(f'Cannot locate {module} with name "{name}"')
 
-    file = 'nboost.%s.%s' % (module, CLASS_MAP[module][name])
+    file = f'nboost.{module}.{CLASS_MAP[module][name]}'
     return getattr(importlib.import_module(file), name)
 
 

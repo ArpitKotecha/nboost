@@ -177,19 +177,19 @@ class Proxy(SocketServer):
     @staticmethod
     def calculate_mrr(correct_cids: List[str], choices: List[Choice]):
         """Calculate mean reciprocal rank as the first correct result index"""
-        for i, choice in enumerate(choices, 1):
-            if choice.cid in correct_cids:
-                return 1 / i
-        return 0
+        return next(
+            (
+                1 / i
+                for i, choice in enumerate(choices, 1)
+                if choice.cid in correct_cids
+            ),
+            0,
+        )
 
     def get_static_file(self, path: str) -> bytes:
         """Construct the static path of the frontend asset requested and return
         the raw file."""
-        if path == '/nboost':
-            asset = 'index.html'
-        else:
-            asset = path.replace('/nboost/', '', 1)
-
+        asset = 'index.html' if path == '/nboost' else path.replace('/nboost/', '', 1)
         static_path = self.STATIC_PATH.joinpath(asset)
 
         # for security reasons, make sure there is no access to other dirs

@@ -17,7 +17,7 @@ class AlbertModel(BaseModel):
         self.input_q = Queue()
 
         ckpts = list(self.model_dir.glob('*.ckpt.*'))
-        if not len(ckpts) > 0:
+        if not ckpts:
             raise FileNotFoundError("Tensorflow model not found")
         self.checkpoint = str(ckpts[0]).split('.ckpt')[0] + '.ckpt'
         self.vocab_file = str(self.model_dir.joinpath('vocab/30k-clean.vocab'))
@@ -158,7 +158,7 @@ class AlbertModel(BaseModel):
                 text=query, max_seq_length=self.max_seq_len, tokenizer=tokenizer,
                 add_cls=True)
 
-            for i, doc_text in enumerate(candidates):
+            for doc_text in candidates:
                 doc_token_id = bert_tokenization.convert_to_bert_input(
                     text=tokenization.convert_to_unicode(doc_text),
                     max_seq_length=self.max_seq_len - len(query_token_ids),
@@ -175,20 +175,17 @@ class AlbertModel(BaseModel):
 
                 input_mask = [1] * len(input_ids)
 
-                features = {
+                yield {
                     "input_ids": input_ids,
                     "segment_ids": segment_ids,
                     "input_mask": input_mask,
-                    "label_ids": 0
+                    "label_ids": 0,
                 }
-                yield features
 
     def pad(self, candidates):
-        if len(candidates) % self.batch_size == 0:
-            return candidates
-        else:
+        if len(candidates) % self.batch_size != 0:
             candidates += ['PADDING DOC'] * (self.batch_size - (len(candidates) % self.batch_size))
-            return candidates
+        return candidates
 
     def rank(self, query, choices):
         actual_length = len(choices)

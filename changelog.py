@@ -60,7 +60,7 @@ def get_changelog() -> dict:
 
 def format_changelog(changelog: dict) -> str:
     """create .md from changelog dict"""
-    release = '# Release `%s`' % __version__.__doc__
+    release = f'# Release `{__version__.__doc__}`'
 
     for module, lines in changelog.items():
         release += '\n\n### %s %s\n' % (EMOJIS.get(module, ''), module.title())

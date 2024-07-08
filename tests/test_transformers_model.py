@@ -11,9 +11,7 @@ class TestModel(unittest.TestCase):
         self.choices = []
 
         with RESOURCES.joinpath('sonnets.txt').open() as fh:
-            for i, line in enumerate(fh):
-                if not line == '':
-                    self.choices.append(line)
+            self.choices.extend(line for line in fh if line != '')
 
     def test_rank(self):
         self.model.rank(self.query, self.choices)
